@@ -1,144 +1,55 @@
-Crypto-donnees/
-├── index.html
-├── btcusd.html
-├── ethusd.html
-└── style.css
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Crypto-données</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #0d1b2a; /* bleu sombre */
+      color: #ffffff;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      max-width: 900px;
+      margin: auto;
+    }
+    .chart-box {
+      width: 45%;
+      text-align: center;
+    }
+    .chart-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: #ffffff;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 300px;
+    }
+    h1 {
+      text-align: center;
+      color: #ffffff;
+    }
+  </style>
 </head>
 <body>
-  <div class="chart-container">
-    <div class="chart-title"><a href="btcusd.html">BTCUSD</a></div>
-    <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=fr"
-            scrolling="no"></iframe>
-
-    <div class="chart-title"><a href="ethusd.html">ETHUSD</a></div>
-    <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=60&theme=dark&style=1&locale=fr"
-            scrolling="no"></iframe>
-  </div>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>BTCUSD - Analyse</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="main-container">
-    <div class="sidebar">
-      <h2>BTCUSD</h2>
-      <ul>
-        <li>Sentiment</li>
-      </ul>
+  <h1>Crypto-données</h1>
+  <div class="container">
+    <div class="chart-box">
+      <div class="chart-title">BTCUSD</div>
+      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=fr"
+        scrolling="no"></iframe>
     </div>
-    <div class="content">
-      <h1>Sentiment BTCUSD</h1>
-      <p>(Contenu à venir)</p>
-    </div>
-  </div>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>ETHUSD - Analyse</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="main-container">
-    <div class="sidebar">
-      <h2>ETHUSD</h2>
-      <ul>
-        <li>Sentiment</li>
-      </ul>
-    </div>
-    <div class="content">
-      <h1>Sentiment ETHUSD</h1>
-      <p>(Contenu à venir)</p>
+    <div class="chart-box">
+      <div class="chart-title">ETHUSD</div>
+      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=60&theme=dark&style=1&locale=fr"
+        scrolling="no"></iframe>
     </div>
   </div>
 </body>
 </html>
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #0a1e3a; /* Bleu sombre */
-  color: #ffffff;
-}
-
-a {
-  color: #00b4d8;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.chart-container {
-  max-width: 800px;
-  margin: 40px auto;
-  text-align: center;
-}
-
-.chart-title {
-  font-size: 20px;
-  margin: 10px 0;
-}
-
-iframe {
-  border: none;
-  width: 100%;
-  height: 300px;
-  margin-bottom: 40px;
-}
-
-/* Page actif (btcusd/ethusd) */
-.main-container {
-  display: flex;
-  height: 100vh;
-}
-
-.sidebar {
-  width: 220px;
-  background-color: #112b45;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.sidebar h2 {
-  font-size: 18px;
-  color: #00b4d8;
-  margin-bottom: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar ul li {
-  margin-bottom: 12px;
-  color: #ccc;
-  cursor: pointer;
-}
-
-.sidebar ul li:hover {
-  color: #ffffff;
-}
-
-.content {
-  flex-grow: 1;
-  padding: 20px;
-}
