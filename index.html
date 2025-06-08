@@ -1,3 +1,53 @@
+Crypto-donnees/
+├── index.html
+├── btcusd.html
+├── ethusd.html
+└── style.css
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #0d1b2a;
+  color: #ffffff;
+}
+
+.main-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 200px;
+  background-color: #1a2636;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #00b4d8;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 10px;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.sidebar ul li:hover {
+  color: #ffffff;
+}
+
+.content {
+  flex-grow: 1;
+  padding: 20px;
+}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,51 +56,77 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #0d1b2a; /* bleu sombre */
+      margin: 0;
+      padding: 20px;
+      background-color: #0d1b2a;
       color: #ffffff;
     }
-    .container {
+    .top-bar {
       display: flex;
       justify-content: space-between;
-      max-width: 900px;
-      margin: auto;
+      margin-bottom: 40px;
     }
-    .chart-box {
-      width: 45%;
+    .chart-mini {
+      width: 48%;
       text-align: center;
     }
-    .chart-title {
-      font-weight: bold;
-      margin-bottom: 8px;
+    .chart-title a {
+      text-decoration: none;
+      color: #00b4d8;
       font-size: 18px;
-      color: #ffffff;
+      font-weight: bold;
     }
     iframe {
       border: none;
       width: 100%;
-      height: 300px;
+      height: 200px;
     }
-    h1 {
+    .content {
       text-align: center;
-      color: #ffffff;
+      padding: 50px;
+      border: 2px dashed #1e2e3e;
     }
   </style>
 </head>
 <body>
-  <h1>Crypto-données</h1>
-  <div class="container">
-    <div class="chart-box">
-      <div class="chart-title">BTCUSD</div>
+  <div class="top-bar">
+    <div class="chart-mini">
+      <div class="chart-title"><a href="btcusd.html">BTCUSD</a></div>
       <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=fr"
         scrolling="no"></iframe>
     </div>
-    <div class="chart-box">
-      <div class="chart-title">ETHUSD</div>
+    <div class="chart-mini">
+      <div class="chart-title"><a href="ethusd.html">ETHUSD</a></div>
       <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=60&theme=dark&style=1&locale=fr"
         scrolling="no"></iframe>
     </div>
   </div>
+
+  <div class="content">
+    <h2>(contenu du site plus tard)</h2>
+  </div>
 </body>
 </html>
-
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BTCUSD - Analyse</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="main-container">
+    <div class="sidebar">
+      <h2>BTCUSD</h2>
+      <ul>
+        <li>Sentiment</li>
+        <!-- D'autres onglets plus tard -->
+      </ul>
+    </div>
+    <div class="content">
+      <h1>Onglet : Sentiment</h1>
+      <p>(Contenu à venir... données, graphiques, analyse, etc.)</p>
+    </div>
+  </div>
+</body>
+</html>
