@@ -2,51 +2,42 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Crypto-données</title>
+  <title>Graphiques Crypto</title>
   <style>
     body {
-      background-color: #000; /* Fond noir */
-      color: #fff; /* Texte blanc */
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .container {
-      display: flex;
-      justify-content: space-between;
-      max-width: 900px;
-      margin: auto;
-    }
-    .chart-box {
-      width: 45%;
-      text-align: center;
-    }
-    .chart-title {
-      font-weight: bold;
-      margin-bottom: 8px;
-      font-size: 18px;
+      background-color: #000;
       color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    h1, h2 {
+      color: #fff;
+      margin-bottom: 20px;
     }
     iframe {
-      border: none;
-      width: 100%;
+      width: 90%;
       height: 300px;
-      background-color: #000;
+      border: none;
+      margin-bottom: 50px;
     }
   </style>
 </head>
 <body>
-  <h1>Crypto-données</h1>
-  <div class="container">
-    <div class="chart-box">
-      <div class="chart-title">BTCUSD</div>
-      <iframe src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.html?coin_id=bitcoin&currency=usd&theme=dark"
-        scrolling="no"></iframe>
-    </div>
-    <div class="chart-box">
-      <div class="chart-title">ETHUSD</div>
-      <iframe src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.html?coin_id=ethereum&currency=usd&theme=dark"
-        scrolling="no"></iframe>
-    </div>
-  </div>
+  <h1>Graphiques Crypto en Temps Réel</h1>
+
+  <h2>BTC/USD</h2>
+  <iframe 
+    src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.html?coin_id=bitcoin&currency=usd&theme=dark"
+    title="Bitcoin Chart"
+    loading="lazy">
+  </iframe>
+
+  <h2>ETH/USD</h2>
+  <iframe 
+    src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.html?coin_id=ethereum&currency=usd&theme=dark"
+    title="Ethereum Chart"
+    loading="lazy">
+  </iframe>
 </body>
 </html>
