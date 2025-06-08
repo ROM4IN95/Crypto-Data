@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Crypto-données avec Options</title>
+  <title>Crypto-données</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,16 +12,17 @@
       color: #ffffff;
     }
     .container {
-      display: flex;
-      justify-content: space-between;
       max-width: 900px;
       margin: auto;
-      flex-wrap: wrap;
     }
-    .chart-box, .options-box {
-      width: 45%;
+    .chart-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .chart-box {
+      width: 48%;
       text-align: center;
-      margin-top: 20px;
     }
     .chart-title {
       font-weight: bold;
@@ -33,128 +35,219 @@
       width: 100%;
       height: 300px;
     }
+    canvas {
+      background-color: #142c54;
+      border-radius: 8px;
+      margin-top: 15px;
+      max-height: 300px;
+    }
     h1 {
       text-align: center;
       color: #ffffff;
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
   <h1>Crypto-données</h1>
-  <div class="container">
+
+  <!-- TradingView charts -->
+  <div class="chart-row">
     <div class="chart-box">
       <div class="chart-title">BTCUSD</div>
-      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=fr"
-        scrolling="no"></iframe>
+      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=fr" scrolling="no"></iframe>
     </div>
     <div class="chart-box">
       <div class="chart-title">ETHUSD</div>
-      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=60&theme=dark&style=1&locale=fr"
-        scrolling="no"></iframe>
+      <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=60&theme=dark&style=1&locale=fr" scrolling="no"></iframe>
     </div>
   </div>
 
-  <div class="container">
-    <div class="options-box">
-      <div class="chart-title">Options BTC (ATM, ITM, OTM %)</div>
-      <canvas id="btcChart"></canvas>
+  <!-- Option Data & IV charts -->
+  <div class="chart-row">
+    <div class="chart-box" id="btcBox">
+      <div class="chart-title">Répartition options BTC (ATM / ITM / OTM)</div>
+      <canvas id="btcOptionsChart"></canvas>
+
+      <div class="chart-title">Volatilité Implicite Moyenne BTC</div>
+      <canvas id="btcIVChart"></canvas>
     </div>
-    <div class="options-box">
-      <div class="chart-title">Options ETH (ATM, ITM, OTM %)</div>
-      <canvas id="ethChart"></canvas>
+
+    <div class="chart-box" id="ethBox">
+      <div class="chart-title">Répartition options ETH (ATM / ITM / OTM)</div>
+      <canvas id="ethOptionsChart"></canvas>
+
+      <div class="chart-title">Volatilité Implicite Moyenne ETH</div>
+      <canvas id="ethIVChart"></canvas>
     </div>
   </div>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Fonctions pour récupérer les données depuis Deribit API
 
-  <script>
-    // Traduction de ton Python en JS
+  async function getSpotPrice(asset) {
+    const instrument = `${asset}-PERPETUAL`;
+    const url = `https://www.deribit.com/api/v2/public/ticker?instrument_name=${instrument}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (!data.result) throw new Error(`Impossible de récupérer le prix spot pour ${asset}.`);
+    return data.result.last_price;
+  }
 
-    async function getSpotPrice(asset) {
-      const instrument = `${asset}-PERPETUAL`;
-      const url = `https://www.deribit.com/api/v2/public/ticker?instrument_name=${instrument}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!data.result) throw new Error(`Impossible de récupérer le prix spot pour ${asset}.`);
-      return data.result.last_price;
+  async function getOptions(asset) {
+    const url = `https://www.deribit.com/api/v2/public/get_instruments?currency=${asset}&kind=option&expired=false`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    return data.result || [];
+  }
+
+  function categorizeOptions(options, spotPrice, atmThreshold = 0.01) {
+    let countAtm = 0, countItm = 0, countOtm = 0;
+
+    for (const opt of options) {
+      const strike = opt.strike;
+      const optionType = opt.option_type;
+
+      if (Math.abs(strike - spotPrice) / spotPrice <= atmThreshold) {
+        countAtm++;
+      } else {
+        if (optionType === 'call') {
+          if (strike < spotPrice) countItm++;
+          else countOtm++;
+        } else if (optionType === 'put') {
+          if (strike > spotPrice) countItm++;
+          else countOtm++;
+        }
+      }
     }
+    const total = options.length;
+    if (total === 0) return [0, 0, 0];
+    return [
+      (countAtm / total) * 100,
+      (countItm / total) * 100,
+      (countOtm / total) * 100
+    ];
+  }
 
-    async function getOptions(asset) {
-      const url = `https://www.deribit.com/api/v2/public/get_instruments?currency=${asset}&kind=option&expired=false`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.result || [];
+  async function getAverageIV(asset) {
+    const options = await getOptions(asset);
+    if (options.length === 0) return 0;
+
+    let ivSum = 0;
+    let count = 0;
+
+    // Limite à 30 options pour éviter trop de requêtes
+    const limitedOptions = options.slice(0, 30);
+
+    for (const opt of limitedOptions) {
+      const url = `https://www.deribit.com/api/v2/public/ticker?instrument_name=${opt.instrument_name}`;
+      try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.result && data.result.iv) {
+          ivSum += data.result.iv;
+          count++;
+        }
+      } catch {
+        // ignore erreur
+      }
     }
+    return count > 0 ? ivSum / count : 0;
+  }
 
-    function categorizeOptions(options, spotPrice, atmThreshold = 0.01) {
-      let countATM = 0, countITM = 0, countOTM = 0;
-      for (const opt of options) {
-        const strike = opt.strike;
-        const optionType = opt.option_type;
-        if (Math.abs(strike - spotPrice) / spotPrice <= atmThreshold) {
-          countATM++;
-        } else {
-          if (optionType === 'call') {
-            if (strike < spotPrice) countITM++;
-            else countOTM++;
-          } else if (optionType === 'put') {
-            if (strike > spotPrice) countITM++;
-            else countOTM++;
+  // Fonction pour créer un camembert
+  function createPieChart(ctx, labels, data, colors) {
+    return new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderColor: '#0d1b2a',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: 'white', font: { size: 14 } },
+            position: 'bottom'
           }
         }
       }
-      const total = options.length;
-      if (total === 0) return [0, 0, 0];
-      return [
-        (countATM / total) * 100,
-        (countITM / total) * 100,
-        (countOTM / total) * 100
-      ];
-    }
+    });
+  }
 
-    async function fetchAndRenderChart(asset, canvasId) {
-      try {
-        const spotPrice = await getSpotPrice(asset);
-        const options = await getOptions(asset);
-        const [atm, itm, otm] = categorizeOptions(options, spotPrice);
-        
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ['ATM', 'ITM', 'OTM'],
-            datasets: [{
-              label: `Répartition options ${asset}`,
-              data: [atm.toFixed(2), itm.toFixed(2), otm.toFixed(2)],
-              backgroundColor: ['#f39c12', '#27ae60', '#c0392b'],
-              hoverOffset: 30
-            }]
+  // Fonction pour créer un graphique barre (pour IV)
+  function createBarChart(ctx, label, value, color) {
+    return new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Volatilité Implicite Moyenne'],
+        datasets: [{
+          label: label,
+          data: [value],
+          backgroundColor: color
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { color: 'white' }
           },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { labels: { color: 'white' } },
-              title: {
-                display: true,
-                text: `Répartition options ${asset} par catégorie (%)`,
-                color: 'white',
-                font: { size: 16 }
-              }
-            }
+          x: {
+            ticks: { color: 'white' }
           }
-        });
-      } catch (err) {
-        console.error(err);
-        document.getElementById(canvasId).parentNode.innerHTML = `<p>Erreur lors du chargement des données pour ${asset}.</p>`;
+        },
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
       }
-    }
+    });
+  }
 
-    // Lancer le rendu des deux graphiques
-    fetchAndRenderChart('BTC', 'btcChart');
-    fetchAndRenderChart('ETH', 'ethChart');
-  </script>
+  async function updateCharts(asset, optionsCanvasId, ivCanvasId) {
+    try {
+      const spotPrice = await getSpotPrice(asset);
+      const options = await getOptions(asset);
+
+      const [atmPct, itmPct, otmPct] = categorizeOptions(options, spotPrice);
+
+      // Affiche les camemberts
+      const optionsCtx = document.getElementById(optionsCanvasId).getContext('2d');
+      createPieChart(optionsCtx,
+        ['ATM', 'ITM', 'OTM'],
+        [atmPct.toFixed(2), itmPct.toFixed(2), otmPct.toFixed(2)],
+        ['#f39c12', '#2ecc71', '#e74c3c']
+      );
+
+      // Affiche la volatilité implicite
+      const avgIV = await getAverageIV(asset);
+      const ivCtx = document.getElementById(ivCanvasId).getContext('2d');
+      createBarChart(ivCtx,
+        `Volatilité implicite ${asset} (%)`,
+        avgIV ? (avgIV * 100).toFixed(2) : 0,
+        asset === 'BTC' ? '#f39c12' : '#3498db'
+      );
+
+    } catch (err) {
+      console.error(`Erreur avec ${asset} :`, err);
+      const box = document.getElementById(asset.toLowerCase() + 'Box');
+      box.innerHTML = `<p>Erreur lors du chargement des données pour ${asset}.</p>`;
+    }
+  }
+
+  // Lancement au chargement
+  window.onload = () => {
+    updateCharts('BTC', 'btcOptionsChart', 'btcIVChart');
+    updateCharts('ETH', 'ethOptionsChart', 'ethIVChart');
+  }
+</script>
+
 </body>
 </html>
-
-
