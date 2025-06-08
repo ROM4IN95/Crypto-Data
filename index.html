@@ -55,59 +55,93 @@
 </html>
 
 
-<div class="table-container">
-  <table>
-    <thead>
-      <tr>
-        <th>Actif</th>
-        <th>Colonne 1</th>
-        <th>Colonne 2</th>
-        <th>Colonne 3</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>BTCUSD</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-      </tr>
-      <tr>
-        <td>ETHUSD</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-      </tr>
-    </tbody>
-  </table>
+
+
+from flask import Flask, jsonify
+import requests
+
+app = Flask(__name__)
+
+def get_spot_price():
+    url = "https://www.deribit.com/api/v2/public/ticker?instrument_name=ETH-PERPETUAL"
+    response = requests.get(url).json()
+    return response['result']['last_price']
+
+def get_options(instrument_name_prefix):
+    url = "https://www.deribit.com/api/v2/public/get_instruments?currency=ETH&kind=option&expired=false"
+    response = requests.get(url).json()
+    instruments = response['result']
+    options = [i for i in instruments if i['instrument_name'].startswith(instrument_name_prefix)]
+    return options
+
+def categorize_options(options, spot_price, atm_threshold=0.01):
+    count_atm = 0
+    count_itm = 0
+    count_otm = 0
+    for opt in options:
+        strike = opt['strike']
+        option_type = 'call' if opt['option_type'] == 'call' else 'put'
+        if abs(strike - spot_price)/spot_price <= atm_threshold:
+            count_atm += 1
+        else:
+            if option_type == 'call':
+                if strike < spot_price:
+                    count_itm += 1
+                else:
+                    count_otm += 1
+            elif option_type == 'put':
+                if strike > spot_price:
+                    count_itm += 1
+                else:
+                    count_otm += 1
+    total = len(options)
+    if total == 0:
+        return 0,0,0
+    return (count_atm / total) * 100, (count_itm / total) * 100, (count_otm / total) * 100
+
+@app.route('/api/eth-options')
+def eth_options():
+    spot = get_spot_price()
+    instrument_prefix = "ETH-9JUN25"
+    options = get_options(instrument_prefix)
+    atm, itm, otm = categorize_options(options, spot)
+    return jsonify({
+        "spot_price": spot,
+        "atm_pct": round(atm,2),
+        "itm_pct": round(itm,2),
+        "otm_pct": round(otm,2)
+    })
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+<div id="eth-options" style="max-width: 900px; margin: 20px auto; color: #fff; font-size: 18px; text-align:center;">
+  Chargement des données options ETH...
 </div>
-.table-container {
-  max-width: 900px;
-  margin: 50px auto 0;
-}
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #1b263b;
-  color: #ffffff;
-}
+<script>
+  async function fetchOptionsData() {
+    try {
+      const res = await fetch('http://localhost:5000/api/eth-options');
+      const data = await res.json();
+      document.getElementById('eth-options').innerHTML = `
+        <strong>ETH Options</strong><br>
+        Spot Price: $${data.spot_price} <br>
+        ATM: ${data.atm_pct}% &nbsp;&nbsp;
+        ITM: ${data.itm_pct}% &nbsp;&nbsp;
+        OTM: ${data.otm_pct}%
+      `;
+    } catch (e) {
+      document.getElementById('eth-options').innerHTML = 'Erreur lors du chargement des données options.';
+      console.error(e);
+    }
+  }
 
-th, td {
-  padding: 12px;
-  text-align: center;
-  border: 1px solid #415a77;
-}
-
-th {
-  background-color: #1e2e44;
-}
-
-tr:hover {
-  background-color: #2d3e55;
-}
+  fetchOptionsData();
+</script>
 
 
+                  
 
 
 
