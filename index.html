@@ -2,10 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Mon site crypto</title>
+  <title>Crypto Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .graph {
+      width: 48%;
+      height: 300px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Bienvenue sur mon site crypto</h1>
-  <p>Contenu bientôt disponible...</p>
+  <h1>🪙 Mon Dashboard Crypto</h1>
+  <div class="container">
+    <!-- Graphique BTC -->
+    <div class="graph">
+      <iframe src="https://www.tradingview.com/embed-widget/single-quote/?symbol=BINANCE:BTCUSDT" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+
+    <!-- Graphique ETH -->
+    <div class="graph">
+      <iframe src="https://www.tradingview.com/embed-widget/single-quote/?symbol=BINANCE:ETHUSDT" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+  </div>
 </body>
 </html>
